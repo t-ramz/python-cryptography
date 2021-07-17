@@ -1,3 +1,5 @@
+import string
+
 class Caesar:
     special_chars = [' ', '!', ',', '.', '?', "'"]
     def __init__(self, offset: str):
@@ -64,3 +66,28 @@ class Caesar:
                 out_text = out_text + chr(actual_acii_cipher)
 
         return out_text
+
+
+class CaesarBreaker:
+    def __init__(self, alphabet: str = None):
+        if alphabet:
+            self._alphabet = alphabet
+        else:
+            self._alphabet = string.ascii_lowercase
+
+    def _initialize_dict(self) -> dict:
+        prepared_dict = {}
+        for char in self._alphabet:
+            prepared_dict.update({char: 0})
+        return prepared_dict
+
+    def break_it(self, ciphertext: str) -> tuple:
+        # frequency analysis
+        alphabet_dict = self._initialize_dict()
+        for char in ciphertext:
+            if char in self._alphabet:
+                old_value = alphabet_dict.get(char)
+                new_value = old_value + 1
+                alphabet_dict.update({char: new_value})
+
+        print(alphabet_dict)
