@@ -16,6 +16,10 @@ class Caesar:
         self.offset: str = offset
         self.int_offset = None
 
+    def new_offset(self, offset: str):
+        self.offset = offset
+        self.int_offset = None
+
     def _calc_offset_int(self): # currently lazy offset calculation
         plaintext, _, ciphertext = self.offset.partition('=')
         plaintext.lower()
@@ -69,11 +73,13 @@ class Caesar:
 
 
 class CaesarBreaker:
-    def __init__(self, alphabet: str = None):
-        if alphabet:
-            self._alphabet = alphabet
-        else:
-            self._alphabet = string.ascii_lowercase
+    common_words_list = [
+        "hello", "every", "word", "in", "the", "english", "language",
+    ]
+
+    def __init__(self, alphabet: str = None, common_words: list = None):
+        self._alphabet = alphabet if alphabet else string.ascii_lowercase
+        self._common_words = common_words if common_words else self.common_words_list
 
     def _initialize_dict(self) -> dict:
         prepared_dict = {}
@@ -81,13 +87,30 @@ class CaesarBreaker:
             prepared_dict.update({char: 0})
         return prepared_dict
 
-    def break_it(self, ciphertext: str) -> tuple:
-        # frequency analysis
-        alphabet_dict = self._initialize_dict()
-        for char in ciphertext:
-            if char in self._alphabet:
-                old_value = alphabet_dict.get(char)
-                new_value = old_value + 1
-                alphabet_dict.update({char: new_value})
+    def _brute_force(self, ciphertext: str) -> dict:
+        # naive brute force algorithm with common word boost
+        key_message_dict: dict = {}
+        cipher = Caesar('a=a')
+        for character in self._alphabet:
+            key = f"a={character}"
+            cipher.new_offset(offset=key)
+            message = cipher.process(in_text=ciphertext, decipher=True)
+            for word in self._common_words:
+                if word in message:
+                    key_message_dict.update({key: message})
+        return key_message_dict
 
-        print(alphabet_dict)
+    def break_it(self, ciphertext: str, brute_force: bool = False) -> tuple:
+        # frequency analysis
+        if brute_force:
+            result_dict = self._brute_force(ciphertext=ciphertext)
+        else:
+            alphabet_dict = self._initialize_dict()
+            for char in ciphertext:
+                if char in self._alphabet:
+                    old_value = alphabet_dict.get(char)
+                    new_value = old_value + 1
+                    alphabet_dict.update({char: new_value})
+            result_dict = alphabet_dict     # temporary measure for testing
+
+        print(result_dict)
