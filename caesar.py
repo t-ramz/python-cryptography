@@ -76,10 +76,39 @@ class CaesarBreaker:
     common_words_list = [
         "hello", "every", "word", "in", "the", "english", "language",
     ]
+    dummy_frequency_dict = {
+        "e": .12,
+        "t": .091,
+        "a": .081,
+        "o": .077,
+        "i": .073,
+        "n": .069,
+        "s": .063,
+        "r": .06,
+        "h": .059,
+        "d": .043,
+        "l": .04,
+        "u": .029,
+        "c": .027,
+        "m": .026,
+        "f": .023,
+        "y": .021,
+        "w": .021,
+        "g": .02,
+        "p": .018,
+        "b": .015,
+        "v": .011,
+        "k": .007,
+        "x": .002,
+        "q": .001,
+        "j": .001,
+        "z": .001,
+    }
 
-    def __init__(self, alphabet: str = None, common_words: list = None):
+    def __init__(self, alphabet: str = None, common_words: list = None, frequency_dict: dict = None):
         self._alphabet = alphabet if alphabet else string.ascii_lowercase
         self._common_words = common_words if common_words else self.common_words_list
+        self._lang_frequencies = frequency_dict if frequency_dict else self.dummy_frequency_dict
 
     def _initialize_dict(self) -> dict:
         prepared_dict = {}
@@ -100,17 +129,25 @@ class CaesarBreaker:
                     key_message_dict.update({key: message})
         return key_message_dict
 
+    def _frequency_analysis(self, ciphertext: str) -> dict:
+        key_message_dict = {}
+        cipher_length = len(ciphertext)
+        frequency_dict = self._initialize_dict()
+        cipher = Caesar('a=a')
+        for char in ciphertext:
+            if char in self._alphabet:
+                old_value = frequency_dict.get(char)
+                new_value = old_value + 1/cipher_length
+                frequency_dict.update({char: new_value})
+        # next we want to compare frequencies and assign possible ciphers  based on that
+        # for example, check if frequency_dict
+        return key_message_dict
+
     def break_it(self, ciphertext: str, brute_force: bool = False) -> tuple:
         # frequency analysis
         if brute_force:
             result_dict = self._brute_force(ciphertext=ciphertext)
         else:
-            alphabet_dict = self._initialize_dict()
-            for char in ciphertext:
-                if char in self._alphabet:
-                    old_value = alphabet_dict.get(char)
-                    new_value = old_value + 1
-                    alphabet_dict.update({char: new_value})
-            result_dict = alphabet_dict     # temporary measure for testing
+            result_dict = self._frequency_analysis(ciphertext=ciphertext)
 
         print(result_dict)
